@@ -10,6 +10,7 @@
 global start
 extern long_mode_start
 global tss
+global tss_entry
 global int_stack
 global p4_table
 
@@ -210,8 +211,11 @@ gdt64:
     dq (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53) ; code segment
 .data: equ $ - gdt64 ; new
     dq (1<<44) | (1<<47) | (1<<41) ; data segment
-.tss: equ $ - gdt64 ; reserved for tss
+tss: equ $ - gdt64 ; new
     dq 0
 .pointer:
     dw $ - gdt64 - 1
     dq gdt64
+tss_entry:; reserved for tss
+    dq 36
+    dq int_stack

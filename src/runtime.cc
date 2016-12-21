@@ -62,12 +62,13 @@ void std::__throw_bad_alloc(void) {
 }
 
 
-extern "C" void __assert_func(const char* file, int line, const char* func, bool cond) {
-  if (!cond) {
-    printf("Assertion failed at %s line %d in %s\n", file, line, func);
+extern "C" void __assert_func(const char* file, int line, const char* func, const char* what) {
+  //if (!cond) {
+    printf("Assertion failed at %s line %d in %s: %s\n", file, line, func, what);
     panic();
-  }
+  //}
 }
+
 
 extern "C" void *memset(void *s, int c, size_t n) {
   unsigned char* p;
@@ -76,3 +77,28 @@ extern "C" void *memset(void *s, int c, size_t n) {
     *p++ = (unsigned char)c;
   return s;
 }
+
+extern void (*__init_list)(void);
+extern uint64_t __end_init_list;
+void call_constructors() {
+  auto iter = __init_list;
+  while ((uint64_t)iter > 0) {
+    iter();
+    iter--;
+  }
+/*
+  auto iter = __init_list;
+  while ((uint64_t)iter != __end_init_list) {
+    iter();
+    iter++;
+  }
+  */
+}
+
+extern "C" void __cxa_atexit() {
+  return;
+}
+
+//extern "C" void __dso_handle() {
+//  return;
+//}

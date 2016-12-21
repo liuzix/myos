@@ -4,46 +4,48 @@ extern intr_handler
 section .text
 
 do_intr:
-    push rbp
-    mov rbp, rsp
-    push rax
-    push rbx
-    push rcx
-    push rdx
-    push rdi
-    push rsi
-    push rsp
-    push rbp
-    push r8
-    push r9
-    push r10
-    push r11
-    push r12
-    push r13
-    push r14
-    push r15
+    ;mov rbp, rsp
+    ;mov rbp, rsp
     pushfq
-    mov rdi, [temp]
-    call intr_handler
-    popfq
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop r11
-    pop r10
-    pop r9
-    pop r8
-    pop rbp
-    add rsp, 8
-    pop rsi
-    pop rdi
-    pop rdx
-    pop rcx
-    pop rbx
-    pop rax
-    pop rbp
+    push r15
+    push r14
+    push r13
+    push r12
+    push r11
+    push r10
+    push r9
+    push r8
+    push rbp
+    push rsp
+    push rsi
+    push rdi
+    push rdx
+    push rcx
+    push rbx
+    push rax
 
+    mov rdi, [temp]
+    mov rsi, rsp
+    call intr_handler
+
+
+    pop rax
+    pop rbx
+    pop rcx
+    pop rdx
+    pop rdi
+    pop rsi
+    add rsp, 8
+    pop rbp
+    pop r8
+    pop r9
+    pop r10
+    pop r11
+    pop r12
+    pop r13
+    pop r14
+    pop r15
+    popfq
     iretq
 
 %macro intr_handler_gen 1

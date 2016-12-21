@@ -6,8 +6,10 @@
 #include "lib/bitmap.h"
 #include "lib/assert.h"
 #include "utils.h"
+#include "sync.h"
 
 frame* frame_manager;
+critical_lock fr_lock;
 
 frame::frame(size_t len, uint8_t *first_frame)  {
   pool_available = false;
@@ -17,6 +19,7 @@ frame::frame(size_t len, uint8_t *first_frame)  {
   printf("freemap = %08x\n", free_map);
 
   // TODO: can remove later
+  /*
   printf("Testing bitmap implementation..\n");
 
   for (size_t i = 0; i < len; i++) {
@@ -33,17 +36,21 @@ frame::frame(size_t len, uint8_t *first_frame)  {
     if (i % 9 == 0) assert_true(free_map->get(i));
     else assert_true(!free_map->get(i));
   }
+   */
   free_map->clear();
   printf("Test passed\n");
 
 }
 
 uint8_t *frame::alloc_sys() {
+  fr_lock.lock();
   auto ret = free_map->scan_and_set();
   if (ret == free_map->capacity) {
     printf("OOM! \n"); panic();
   }
-  return ret * PAGE_SIZE + this->base;
+  uint8_t * ret1 = ret * PAGE_SIZE + this->base;
+  fr_lock.unlock();
+  return ret1;
 }
 
 void frame::set_pool(uint8_t *base, size_t page_cnt) {

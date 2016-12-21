@@ -6,6 +6,8 @@
 #include "interrupts.h"
 #include "utils.h"
 #include "lib/assert.h"
+#include "timer.h"
+#include <boost/preprocessor/repetition/for.hpp>
 
 // A struct describing a Task State Segment.
 struct tss_entry_struct
@@ -39,7 +41,7 @@ struct tss_entry_struct
     uint16_t iomap_base;
 } __attribute__((packed));
 
-tss_entry_struct tss_entry;
+extern uint64_t tss_entry;
 
 struct gdt_entry
 {
@@ -64,6 +66,7 @@ struct gdt_entry
 } __attribute__((packed));
 
 extern gdt_entry tss;
+//extern uint64_t tss;
 extern void* int_stack;
 
 void gdt_entry::install_tss() {
@@ -83,7 +86,7 @@ void gdt_entry::install_tss() {
   gran = 0;
   base_high = ((uint64_t) &tss_entry &0xFF0000)>> 24;
 
-  tss_entry.esp0 = (uint64_t) int_stack;
+  //tss_entry.esp0 = (uint64_t) int_stack;
 }
 //or __attribute__((packed))
 
@@ -98,7 +101,7 @@ idt_entry idt_entry::make_gate(void *func) {
   ret.zero = 0;
   ret.selector = 0x08; // gdt code segment
   ret.type_attr = (1 << 7) | (0 << 5) | 0xE;
-  ret.ist = 32;
+  ret.ist = 0;
   return ret;
 }
 
@@ -118,21 +121,38 @@ void default_interrupt_handler(interrupt_frame fr) {
   panic();
 }
 
-extern "C" void intr_handler_3(void);
+extern "C" void intr_handler_6(void);
+extern "C" void intr_handler_32(void);
+extern "C" void intr_handler_14(void);
+extern "C" void intr_handler_13(void);
 
-extern "C" void intr_handler(uint64_t vec_no) {
-  printf("Interrupt Number %ld\n", vec_no);
+extern "C" void intr_handler(uint64_t vec_no, interrupt_frame* fr) {
+  switch (vec_no) {
+    case 32: // timer
+      on_timer_interrupt(fr);
+      break;
+    default:
+      printf("Interrupt Number %ld\n", vec_no);
+      printf("rsp = %lx\n", fr->rsp);
+      printf("rip = %lx\n", fr->rip);
+      panic();
+  }
+
 }
 
 void idt_ptr::install() {
   for (int i = 0; i < 256; i++) {
     idt[i] = idt_entry::make_gate((void*)&default_interrupt_handler);
   }
-  idt[3] = idt_entry::make_gate((void*)&intr_handler_3); // DEBUG HANDLER
-
-
+  //idt[3] = idt_entry::make_gate((void*)&intr_handler_3); // DEBUG HANDLER
+  idt[32] = idt_entry::make_gate((void*)&intr_handler_32); // timer
+  idt[6] = idt_entry::make_gate((void*)&intr_handler_6); // illegal opcode
+  idt[14] = idt_entry::make_gate((void*)&intr_handler_14); // page fault
+  idt[13] = idt_entry::make_gate((void*)&intr_handler_13); // GP
+  //0x65154c3
+  tss.install_tss();
   idtp.base = reinterpret_cast<uint64_t>(idt);
-  idtp.limit = 256;
+  idtp.limit = 256 * sizeof(idt_entry);
   asm ("lidt %0" : : "m"(idtp) );
 }
 

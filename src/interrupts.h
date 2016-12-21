@@ -5,6 +5,7 @@
 #ifndef MYOS_INTERRUPTS_H
 #define MYOS_INTERRUPTS_H
 
+#include <stdint.h>
 
 /* Defines an IDT entry */
 struct idt_entry
@@ -33,6 +34,7 @@ struct interrupt_frame
     uint64_t r8,  r9,  r10, r11;
     uint64_t r12, r13, r14, r15;
     uint64_t flags;
+    uint64_t rip;
 } __attribute__((packed));
 
 extern struct idt_ptr idtp;

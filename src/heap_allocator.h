@@ -7,16 +7,17 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "sync.h"
 
-#define HEADER_SIZE (offsetof(heap_block, data))
+#define HEADER_SIZE ((offsetof(heap_block, data) << 6) >> 6)
 
 struct heap_block {
     int magic = 314159;
     size_t size;
-    bool free = true;
+    bool free;
     heap_block* next;
     heap_block* prev;
-    uint8_t data;
+
 
     heap_block* split(size_t first_size);
     heap_block* try_merge();
@@ -27,8 +28,10 @@ struct heap_block {
     }
 private:
     bool is_adjacent_to(heap_block* x);
+public:
+    uint8_t data;
 
-};
+} ;
 
 class heap_allocator {
 private:
@@ -45,5 +48,4 @@ public:
 };
 
 extern heap_allocator global_heap;
-
 #endif //MYOS_HEAP_ALLOCATOR_H

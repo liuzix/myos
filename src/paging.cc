@@ -14,7 +14,7 @@ page_table::page_table(int level, page_table_entry *addr) {
     // we want to create new table
     entries = (page_table_entry*)frame_manager->alloc_sys();
     _memset(entries, 0, 4096);
-    printf("allocated page table level = %d, addr = %ld\n", level, entries);
+    //printf("allocated page table level = %d, addr = %ld\n", level, entries);
   } else
     this->entries = addr;
 }
@@ -51,11 +51,12 @@ page_table_entry * page_table::get_pte(uint8_t *vaddr, bool create) {
 }
 
 page_table_entry *page_table::map(uint8_t *vaddr, uint8_t *paddr) {
-  printf("mapping %08x to %08x\n", vaddr, paddr);
+  //printf("mapping %08lx to %08lx\n", vaddr, paddr);
   assert_true(!pages.is_valid(vaddr));
   auto p = pages.get_pte(vaddr, true);
   p->present = true;
   p->address = (uint64_t )paddr / PAGE_SIZE;
+  asm ("mov %%cr3, %%rax; mov %%rax, %%cr3" ::: "rax");
   return p;
 
 }

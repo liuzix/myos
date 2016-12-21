@@ -16,6 +16,16 @@ inline void outb(uint16_t port, uint8_t val) {
   return;
 }
 
+inline void outl(uint16_t port, uint32_t val) {
+  asm volatile ( "outl %0, %1" : : "eax"(val), "Nd"(port) );
+  return;
+}
+
+inline uint32_t inl(uint16_t port) {
+  uint32_t val;
+  asm volatile ( "in %1, %%eax; movl %%eax, %0" : "=g"(val) : "Nd"(port) );
+  return val;
+}
 
 void inline _memset(void *s, int c, size_t n) {
   memset(s,c,n);

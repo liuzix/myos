@@ -2,6 +2,7 @@
 // Created by Zixiong Liu on 12/16/16.
 //
 #include "../vga.h"
+#include "../sync.h"
 typedef unsigned long size_t;
 typedef long ssize_t;
 #ifdef __64BIT__
@@ -407,13 +408,16 @@ putchar(int c, void *arg)
   vga::putc(c, COLOR_WHITE);
 }
 
+critical_lock printf_lock;
 int
 printf(const char *fmt, ...)
 {
   /* http://www.pagetable.com/?p=298 */
   va_list ap;
-   va_start(ap, fmt);
+  va_start(ap, fmt);
+  printf_lock.lock();
   int ret = kvprintf(fmt, putchar, NULL, 10, ap);
+  printf_lock.unlock();
   va_end(ap);
   return ret;
 }

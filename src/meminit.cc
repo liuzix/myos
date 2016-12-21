@@ -7,6 +7,7 @@
 #include "lib/assert.h"
 #include "frame.h"
 #include "paging.h"
+#include "heap_allocator.h"
 
 inline uint8_t* get_al8(uint8_t* addr) {
   uint64_t addr_int = (uint64_t)addr;
@@ -129,12 +130,13 @@ void meminit (void* boot_info) {
   mem_addr += KERNEL_OFFSET;
   frame* fr_manager = ::new(mem_addr) frame(FR_MNGR_SIZE_PG * PAGE_SIZE, mem_addr);
   fr_manager->set_pool(mem_addr + FR_MNGR_SIZE_PG * PAGE_SIZE, (mem_size / PAGE_SIZE) - FR_MNGR_SIZE_PG);
-  //frame fuck(4096 * 1024, this_region.base);
   frame_manager = fr_manager;
 
   page_init();
+
+
+  /// testing
   pages.map((uint8_t *)0xb0007000, frame_manager->alloc_sys());
   printf("testing paging...\n");
   *(int*)(0xb0007000) = 1234;
-  printf("haha = %ld\n", *(int*)(0xb0007000));
 }
