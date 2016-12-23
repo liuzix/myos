@@ -28,7 +28,7 @@ add_executable(bootloader ${ARCH_SOURCE_FILES} src/crti.o src/crtbegin.o
         src/heap_allocator.h src/runtime.cc src/paging.cc src/paging.h src/timer.cc src/timer.h
         src/thread.cc src/thread.h src/sync.cc src/sync.h src/devices/pci.h src/devices/ahci.cc src/devices/ahci.h src/tests/sync_malloc.cc
         src/crtend.o src/crtn.o
-        src/lib/list.cc)
+        src/lib/list.cc src/lib/tree.cc)
 set_target_properties(bootloader PROPERTIES LINK_FLAGS  "-ggdb -n -T ${CMAKE_CURRENT_SOURCE_DIR}/src/boot/linker.ld" LINKER_LANGUAGE CXX)
 
 

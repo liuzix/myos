@@ -8,7 +8,7 @@
 #include "printf.h"
 
 inline void panic() {
-  printf("PANIC");
+  kprintf("PANIC");
   while (true) {
     asm("hlt");
   }
@@ -18,7 +18,7 @@ inline void panic() {
 
 inline void __assert_true(bool cond, const char *file, int line) {
   if (!cond) {
-    printf("Assertion failed at %s line %d\n", file, line);
+    kprintf("Assertion failed at %s line %d\n", file, line);
     panic();
   }
 }

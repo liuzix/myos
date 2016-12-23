@@ -5,6 +5,6 @@
 #ifndef MYOS_PRINTF_H
 #define MYOS_PRINTF_H
 
-int printf(const char *fmt, ...);
+int kprintf(const char *fmt, ...);
 
 #endif //MYOS_PRINTF_H

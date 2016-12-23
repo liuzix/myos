@@ -33,7 +33,7 @@ void inline _memset(void *s, int c, size_t n) {
 
 inline void sleep() {
   for (int i = 0; i < 20000; i++)
-    printf("waiting...\n");
+    kprintf("waiting...\n");
 }
 
 

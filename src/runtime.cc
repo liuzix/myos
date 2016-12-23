@@ -6,19 +6,30 @@
 #include "heap_allocator.h"
 #include <bits/functexcept.h>
 #include "lib/assert.h"
+#include "sync.h"
 
+extern "C" void *memset(void *s, int c, size_t n);
+
+critical_lock heap_lock;
 void* operator new(size_t size) noexcept
 {
   heap_block* new_alloc;
+  heap_lock.lock();
   new_alloc = global_heap.alloc(size);
-  return &new_alloc->data;
+  heap_lock.unlock();
+  //asm("sti");
+  memset(((uint8_t *)new_alloc) + HEADER_SIZE, 0, size);
+  return ((uint8_t *)new_alloc) + HEADER_SIZE;
 }
 
 void operator delete(void *p) noexcept
 {
   heap_block* tofree;
+  heap_lock.lock();
   tofree = heap_block::get_block(p);
+  heap_lock.unlock();
   global_heap.free(tofree);
+  //asm("sti");
 }
 
 void* operator new[](size_t size) noexcept
@@ -64,7 +75,7 @@ void std::__throw_bad_alloc(void) {
 
 extern "C" void __assert_func(const char* file, int line, const char* func, const char* what) {
   //if (!cond) {
-    printf("Assertion failed at %s line %d in %s: %s\n", file, line, func, what);
+    kprintf("Assertion failed at %s line %d in %s: %s\n", file, line, func, what);
     panic();
   //}
 }

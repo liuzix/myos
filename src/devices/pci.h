@@ -35,4 +35,5 @@ extern void pci_init();
 extern void pci_proc_dump(uint8_t *buffer);
 
 uint16_t pci_read_word(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset);
+void pci_write_word(uint16_t val, uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset);
 #endif //MYOS_PCI_H

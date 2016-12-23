@@ -27,7 +27,7 @@ struct multiboot_info {
 
     void parse(void* ptr) {
       total_size = *(uint32_t*)ptr;
-      printf("total_size = %d\n", total_size);
+      kprintf("total_size = %d\n", total_size);
       assert_true( *((uint32_t*)ptr + 1) == 0);
       multiboot_tag* iter = (multiboot_tag*)(get_al8((uint8_t *)ptr + 8));
       iter = (multiboot_tag*)(get_al8((uint8_t *)iter));
@@ -36,18 +36,18 @@ struct multiboot_info {
         tags[i] = iter;
         sum += iter->size;
         if (sum > total_size) {
-          printf("sanity check failed!\n");
+          kprintf("sanity check failed!\n");
           return;
         }
         if (iter->type == 0 && iter->size == 8) {
-          printf("Num of tags = %d\n", i);
+          kprintf("Num of tags = %d\n", i);
           return;
         }
-        printf("tag type = %d, size = %d\n", iter->type, iter->size);
+        kprintf("tag type = %d, size = %d\n", iter->type, iter->size);
         iter = (multiboot_tag*)((uint8_t *)iter + iter->size);
         iter = (multiboot_tag*)(get_al8((uint8_t *)iter));
       }
-      printf("You reached somewhere unreachable! too many tags!\n");
+      kprintf("You reached somewhere unreachable! too many tags!\n");
     }
 
     multiboot_tag* find_tag(uint32_t type) {
@@ -79,7 +79,7 @@ struct mem_region_iter {
       cur_entry = (mem_entry*)(&mem_tag->type + 4);
       offset = 4 * 4; // skip four fields in tag
       total = mem_tag->size;
-      printf("entry len = %u\n", total);
+      kprintf("entry len = %u\n", total);
     }
 
     mem_entry get_entry () {
@@ -94,7 +94,7 @@ struct mem_region_iter {
         return dummy;
       }
       else {
-        //printf("size of mem entry %d\n", sizeof(mem_entry));
+        //kprintf("size of mem entry %d\n", sizeof(mem_entry));
         cur_entry++;
         //assert_true(cur_entry->reserved == 0);
         offset += 24;
@@ -122,7 +122,7 @@ void meminit (void* boot_info) {
     if (this_region.type == 1) {
       mem_addr = this_region.base;
       mem_size = this_region.length;
-      printf("Mem region addr = %08x, size = %lu\n", this_region.base, this_region.length);
+      kprintf("Mem region addr = %08x, size = %lu\n", this_region.base, this_region.length);
     }
 
     this_region = iter.next_entry();
@@ -137,6 +137,6 @@ void meminit (void* boot_info) {
 
   /// testing
   pages.map((uint8_t *)0xb0007000, frame_manager->alloc_sys());
-  printf("testing paging...\n");
+  kprintf("testing paging...\n");
   *(int*)(0xb0007000) = 1234;
 }

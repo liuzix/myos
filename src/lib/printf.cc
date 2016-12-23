@@ -410,7 +410,7 @@ putchar(int c, void *arg)
 
 critical_lock printf_lock;
 int
-printf(const char *fmt, ...)
+kprintf(const char *fmt, ...)
 {
   /* http://www.pagetable.com/?p=298 */
   va_list ap;

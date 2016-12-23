@@ -7,17 +7,24 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "sync.h"
+#include "lib/assert.h"
 
-#define HEADER_SIZE ((offsetof(heap_block, data) << 6) >> 6)
+template<typename T, typename U> constexpr size_t offsetOf(U T::*member)
+{
+  return (char*)&((T*)nullptr->*member) - (char*)nullptr;
+}
 
+#define HEADER_SIZE ((offsetof(heap_block, data)))
+//define HEADER_SIZE (offsetOf(&heap_block::data))
+//#define HEADER_SIZE (sizeof(heap_block))
 struct heap_block {
     int magic = 314159;
     size_t size;
+
     bool free;
     heap_block* next;
     heap_block* prev;
-
+    size_t size_check;
 
     heap_block* split(size_t first_size);
     heap_block* try_merge();
@@ -26,10 +33,18 @@ struct heap_block {
     inline static heap_block* get_block(void* mem) {
       return (heap_block*)((uint8_t*)mem - HEADER_SIZE);
     }
+
+    inline void set_check() {
+      this->size_check = ~this->size;
+    }
+
+    inline void var_check () {
+      assert_true(this->size_check == ~this->size);
+    }
+    uint8_t *data;
+    //uint8_t padding[32];
 private:
     bool is_adjacent_to(heap_block* x);
-public:
-    uint8_t data;
 
 } ;
 

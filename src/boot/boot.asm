@@ -29,6 +29,7 @@ start:
     call set_up_page_tables
     call enable_paging
     call set_up_SSE
+    call set_up_pic
 
     ; load the 64-bit GDT
     lgdt [gdt64.pointer]
@@ -41,6 +42,24 @@ start:
 
     jmp gdt64.code:long_mode_start
 
+set_up_pic:
+    mov al, 0x11
+    out 0x20, al
+    out 0xA0, al
+
+    mov al, 0x20
+    out 0x21, al     ;PIC1 now starts at 32
+    mov al, 0x28
+    out 0xA1, al     ;PIC2 now starts at 40
+
+    mov al, 0x04
+    out 0x21, al     ;setup cascading
+    mov al, 0x02
+    out 0xA1, al
+
+    mov al, 0x01
+    out 0x21, al
+    out 0xA1, al     ;done!
 set_up_page_tables:
     ; recursive map P4
     mov eax, p4_table

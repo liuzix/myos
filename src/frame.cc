@@ -13,14 +13,14 @@ critical_lock fr_lock;
 
 frame::frame(size_t len, uint8_t *first_frame)  {
   pool_available = false;
-  printf("frame manager = %08x\n", first_frame);
+  kprintf("frame manager = %08x\n", first_frame);
 
   free_map = new(first_frame + sizeof(frame)) bitmap(len - sizeof(frame));
-  printf("freemap = %08x\n", free_map);
+  kprintf("freemap = %08x\n", free_map);
 
   // TODO: can remove later
-  /*
-  printf("Testing bitmap implementation..\n");
+
+  kprintf("Testing bitmap implementation..\n");
 
   for (size_t i = 0; i < len; i++) {
     if (i % 9 == 0) {
@@ -32,13 +32,13 @@ frame::frame(size_t len, uint8_t *first_frame)  {
   }
 
   for (size_t i = 0; i < len; i++) {
-    //printf("i = %d\n", i);
+    //kprintf("i = %d\n", i);
     if (i % 9 == 0) assert_true(free_map->get(i));
     else assert_true(!free_map->get(i));
   }
-   */
+
   free_map->clear();
-  printf("Test passed\n");
+  kprintf("Test passed\n");
 
 }
 
@@ -46,7 +46,7 @@ uint8_t *frame::alloc_sys() {
   fr_lock.lock();
   auto ret = free_map->scan_and_set();
   if (ret == free_map->capacity) {
-    printf("OOM! \n"); panic();
+    kprintf("OOM! \n"); panic();
   }
   uint8_t * ret1 = ret * PAGE_SIZE + this->base;
   fr_lock.unlock();
@@ -59,5 +59,5 @@ void frame::set_pool(uint8_t *base, size_t page_cnt) {
   this->base = base;
   this->pool_size = page_cnt;
   this->pool_available = true;
-  printf("Available physical frames = %u, base = %08x\n", page_cnt, base);
+  kprintf("Available physical frames = %u, base = %08x\n", page_cnt, base);
 }

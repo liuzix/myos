@@ -33,6 +33,7 @@ struct page_table {
       return p && p->present;
     }
 
+    page_table_entry *map_no_cache(uint8_t *vaddr, uint8_t *paddr);
 };
 
 extern page_table_entry p4_table[64];

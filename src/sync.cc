@@ -40,7 +40,7 @@ void sleep_lock::lock() {
 }
 
 sleep_lock::sleep_lock() {
-  printf("sleep_lock init!\n");
+  kprintf("sleep_lock init!\n");
   if (!initialized) {
     assert_true(thread_current != nullptr);
     initialized = true;
@@ -63,18 +63,21 @@ void sleep_lock::unlock() {
 
 void critical_lock::lock() {
   uint16_t flags;
-  __asm ("pushf;"
-    "pop %0 ;"
+  __asm ("pushf; cli;"
+    "pop %0 ; "
     : "=r"(flags) : :
   );
+
+  assert_true(!held);
+  held = true;
   flags &= 0x200;
   intra_old = (bool) flags;
-  asm("cli");
 }
 
 void critical_lock::unlock() {
-  //assert_true(held);
-  //held = false;
+  assert_true(held);
+  held = false;
+
   if (intra_old) {
     asm ("sti");
   }

@@ -7,7 +7,8 @@
 #include "utils.h"
 #include "lib/assert.h"
 #include "timer.h"
-#include <boost/preprocessor/repetition/for.hpp>
+#include "devices/ahci.h"
+#include <boost/preprocessor/repetition/repeat.hpp>
 
 // A struct describing a Task State Segment.
 struct tss_entry_struct
@@ -117,38 +118,40 @@ struct idt_entry idt[256];
 struct idt_ptr idtp;
 
 void default_interrupt_handler(interrupt_frame fr) {
-  printf("There has been an exception!\n");
-  panic();
+  kprintf("There has been an exception!\n");
+  //panic();
 }
 
-extern "C" void intr_handler_6(void);
-extern "C" void intr_handler_32(void);
-extern "C" void intr_handler_14(void);
-extern "C" void intr_handler_13(void);
+#define define_handler(z, n, text) extern "C" void intr_handler_ ## n (void);
+BOOST_PP_REPEAT(255, define_handler, IGN)
+
+int sata_int = 256;
 
 extern "C" void intr_handler(uint64_t vec_no, interrupt_frame* fr) {
   switch (vec_no) {
     case 32: // timer
       on_timer_interrupt(fr);
       break;
+
     default:
-      printf("Interrupt Number %ld\n", vec_no);
-      printf("rsp = %lx\n", fr->rsp);
-      printf("rip = %lx\n", fr->rip);
+      if (vec_no == sata_int) {
+        ahci_on_interrupt();
+        outb(0x20, 0x20);
+        break;
+      }
+      kprintf("Interrupt Number %ld\n", vec_no);
+      kprintf("rsp = %lx\n", fr->rsp);
+      kprintf("rip = %lx\n", fr->rip);
       panic();
   }
 
 }
 
+#define define_gate(z, n, text) idt[n] = idt_entry::make_gate((void*)&intr_handler_ ## n);
+
 void idt_ptr::install() {
-  for (int i = 0; i < 256; i++) {
-    idt[i] = idt_entry::make_gate((void*)&default_interrupt_handler);
-  }
-  //idt[3] = idt_entry::make_gate((void*)&intr_handler_3); // DEBUG HANDLER
-  idt[32] = idt_entry::make_gate((void*)&intr_handler_32); // timer
-  idt[6] = idt_entry::make_gate((void*)&intr_handler_6); // illegal opcode
-  idt[14] = idt_entry::make_gate((void*)&intr_handler_14); // page fault
-  idt[13] = idt_entry::make_gate((void*)&intr_handler_13); // GP
+
+  BOOST_PP_REPEAT(255, define_gate, IGN)
   //0x65154c3
   tss.install_tss();
   idtp.base = reinterpret_cast<uint64_t>(idt);

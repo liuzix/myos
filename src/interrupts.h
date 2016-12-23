@@ -38,4 +38,6 @@ struct interrupt_frame
 } __attribute__((packed));
 
 extern struct idt_ptr idtp;
+
+extern int sata_int;
 #endif //MYOS_INTERRUPTS_H

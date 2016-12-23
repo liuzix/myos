@@ -31,7 +31,7 @@ int thread_worker() {
   int i = 0;
 
   while (i < 10) {
-    printf("hahaha %d\n", i);
+    kprintf("hahaha %d\n", i);
     i++;
     thread_current->thread_sleep(1000);
   }
@@ -58,44 +58,26 @@ extern "C" int kmain (int boot_info) {
   vga::vga_init();
   vga::print("System loading...\n", COLOR_WHITE);
   vga::print("VGA text is working\n", COLOR_BLUE);
-  printf("printf: boot_info = %u \n", boot_info_temp);
-  printf("calling into meminit...\n");
+  kprintf("kprintf: boot_info = %u \n", boot_info_temp);
+  kprintf("calling into meminit...\n");
   asm("cli");
   //sleep();
   meminit(boot_info_temp);
   // new operator becomes available
   idtp.install();
   apic_init();
-  outb(0x21, 0xff);  // disable PIC. We use APIC exclusively
-  outb(0xA1, 0xff);
-  pci_init();
+  inl(0x21);
+  outb(0x21, ~(1 << 7 | 1 << 2));  // disable PIC. We use APIC exclusively
+  //outb(0x21, 1 << 4 | 1);
+  inl(0xA1);
+  outb(0xA1, ~(1 << 3));
+  //outb(0xA1, 0);
+
   thread_init();
   //test_threading();
 
   call_constructors(); // C++ specification requires global constructors be called
-  //_init();
-  /*
-  std::vector<int> test_vec;
-  for (int i = 0; i < 10000; i++) {
-    test_vec.push_back(i);
-  }
-  for (int i = 0; i < 10000; i++) {
-    printf("NUM = %d\n", test_vec[i]);
-  }
-  test_vec.clear();
-   */
-/*
-  int* test = new int[100];
-  int* dummy = new int[123];
 
-  for (int i = 0; i < 100; i++)
-    test[i] = i;
-  delete[] dummy;
-  for (int i = 0; i < 100; i++) {
-    printf("NUM = %d\n", test[i]);
-  }
-  delete[] test;
-*/
   idle.run();
   asm("sti; hlt;"); // enable interrupt
   // When the first interrupt comes, idle thread will be run
@@ -107,12 +89,14 @@ void high_kernel_init() {
   vga::print("Lower kernel initialization finished! \n", COLOR_LIGHT_BLUE);
   //malloc_lock.initialized = true;
   vga::print("Higher kernel initialization started... \n", COLOR_LIGHT_BLUE);
-  //thread fuck((void*)thread_worker);
-  do_multi_syn_malloc(1);
-  //thread_worker();
+  thread fuck((void*)thread_worker);
+  do_multi_syn_malloc(10);
+  pci_init();
 
+  while (true) {
+    asm ("hlt");
+  }
   thread_current->thread_sleep(100);
 }
 
 #pragma clang diagnostic pop
-
